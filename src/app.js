@@ -15,6 +15,7 @@ const {
 	infoRouter,
 	randomRoute,
 } = require('./routes/index.js');
+const compression = require('compression');
 
 const PORT = process.argv[2] || 8080;
 
@@ -46,6 +47,7 @@ if (cluster.isPrimary && mode === 'CLUSTER') {
 
 	app.use(express.urlencoded({ extended: true }));
 	app.use(express.json());
+	app.use(compression());
 
 	app.use(
 		session({
