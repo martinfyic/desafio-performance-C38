@@ -1,3 +1,5 @@
 node_modules
 .env
 .vscode
+loggs/error.log
+loggs/warn.log
