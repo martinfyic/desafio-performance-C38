@@ -1,14 +1,15 @@
 const mongoose = require('mongoose');
+const { loggerInfo, loggerError } = require('../middlewares/log4js');
 require('colors');
 
 const connectionDB = async () => {
 	try {
 		mongoose.connect(process.env.MONGO_URL, {}, () => {
-			console.log(` 💽 Conectado a MongoDB Cloud`.yellow);
+			loggerInfo.info(` 💽 Conectado a MongoDB Cloud`.yellow);
 		});
 	} catch (error) {
-		console.log(` ⚠️ Error ==> ${error?.message || error}`.red);
-		throw new Error('Error al conectarse a MongoDB Cloud');
+		loggerError.error(` ⚠️ Error ==> ${error?.message || error}`.red);
+		throw new Error('Error al conectarse a la DB');
 	}
 };
 

@@ -2,23 +2,37 @@ const passport = require('passport');
 const { Router } = require('express');
 const isAuth = require('../middlewares/isAuth.js');
 const faker = require('../utils/faker.js');
+const { loggerInfo, loggerError } = require('../middlewares/log4js.js');
 
 const ecommerceRoute = Router();
 
 ecommerceRoute.get('/', isAuth, (req, res) => {
-	const user = req.user;
-	const productsFaker = faker();
+	try {
+		const user = req.user;
+		const productsFaker = faker();
 
-	res.render('products', {
-		user,
-		productsFaker,
-	});
+		loggerInfo.info('Se accedió a productos');
+		res.render('products', {
+			user,
+			productsFaker,
+		});
+	} catch (error) {
+		loggerError.error(`Error en products ==> ${error}`);
+		res.send('Error');
+	}
 });
 
 ecommerceRoute.get('/login', (req, res) => {
-	if (req.isAuthenticated()) return res.redirect('/ecommerce');
-	res.render('login');
+	try {
+		if (req.isAuthenticated()) return res.redirect('/ecommerce');
+		loggerInfo.info('Se accedió a /login');
+		res.render('login');
+	} catch (error) {
+		loggerError.error(`Error en /login ==> ${error}`);
+		res.send('Error');
+	}
 });
+
 ecommerceRoute.post(
 	'/login',
 	passport.authenticate('login', { failureRedirect: '/ecommerce/error-login' }),
@@ -26,8 +40,14 @@ ecommerceRoute.post(
 );
 
 ecommerceRoute.get('/signup', (req, res) => {
-	if (req.isAuthenticated()) return res.redirect('/ecommerce');
-	res.render('signup');
+	try {
+		if (req.isAuthenticated()) return res.redirect('/ecommerce');
+		loggerInfo.info('Se accedió a /signup');
+		res.render('signup');
+	} catch (error) {
+		loggerError.error(`Error en /signup ==> ${error}`);
+		res.send('Error');
+	}
 });
 ecommerceRoute.post(
 	'/signup',
@@ -38,19 +58,38 @@ ecommerceRoute.post(
 );
 
 ecommerceRoute.get('/logout', isAuth, (req, res) => {
-	req.logout(err => {
-		if (err) return err;
-		res.redirect('/ecommerce/login');
-	});
+	try {
+		loggerInfo.info('Se accedió a /logout');
+		req.logout(err => {
+			if (err) return err;
+			res.redirect('/ecommerce/login');
+		});
+	} catch (error) {
+		loggerError.error(`Error en /logout ==> ${error}`);
+		res.send('Error');
+	}
 });
 
 ecommerceRoute.get('/error-login', (req, res) => {
-	if (req.isAuthenticated()) return res.redirect('/ecommerce');
-	res.render('error-login');
+	try {
+		if (req.isAuthenticated()) return res.redirect('/ecommerce');
+		loggerInfo.info('Se accedió a /error-login');
+		res.render('error-login');
+	} catch (error) {
+		loggerError.error(`Error en /error-login ==> ${error}`);
+		res.send('Error');
+	}
 });
+
 ecommerceRoute.get('/error-signup', (req, res) => {
-	if (req.isAuthenticated()) return res.redirect('/ecommerce');
-	res.render('error-signup');
+	try {
+		if (req.isAuthenticated()) return res.redirect('/ecommerce');
+		loggerInfo.info('Se accedió a /error-signup');
+		res.render('error-signup');
+	} catch (error) {
+		loggerError.error(`Error en /error-signup ==> ${error}`);
+		res.send('Error');
+	}
 });
 
 module.exports = ecommerceRoute;

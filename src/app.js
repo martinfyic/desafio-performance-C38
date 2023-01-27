@@ -16,6 +16,7 @@ const {
 	randomRoute,
 } = require('./routes/index.js');
 const compression = require('compression');
+const { loggerError, loggerInfo } = require('./middlewares/log4js.js');
 
 const PORT = process.argv[2] || 8080;
 
@@ -23,19 +24,19 @@ const mode = process.argv[3] || 'FORK';
 const nroCpus = os.cpus().length;
 
 if (cluster.isPrimary && mode === 'CLUSTER') {
-	console.log(
-		`🚀 Server on http://localhost:${PORT}/info o http://localhost:${PORT}/api/randoms `
-	);
-	console.log(`  --> PID ${process.pid} <---`.cyan.bold);
-	console.log(`  --> ${mode} Mode <---`.cyan.bold);
+	try {
+		loggerInfo.info(`PID ${process.pid} id`);
 
-	for (let i = 0; i < nroCpus; i++) {
-		cluster.fork();
+		for (let i = 0; i < nroCpus; i++) {
+			cluster.fork();
+		}
+
+		cluster.on('exit', (worker, code, signal) => {
+			loggerInfo.info(`Worker ${worker.process.pid} died`);
+		});
+	} catch (error) {
+		loggerError.error(err);
 	}
-
-	cluster.on('exit', (worker, code, signal) => {
-		console.log(`Worker ${worker.process.pid} died`);
-	});
 } else {
 	const app = express();
 
@@ -70,12 +71,14 @@ if (cluster.isPrimary && mode === 'CLUSTER') {
 	app.use('/info', infoRouter);
 	app.use('/api/randoms', randomRoute);
 
-	app.listen(PORT, async () => {
-		await connectionDB();
-		console.log(
-			`  🚀 Servidor Ok ==> http://localhost:${PORT}/ecommerce/`.cyan.bold
-		),
-			console.log(`  --> PID ${process.pid} <---`.cyan.bold),
-			console.log(`  --> ${mode} Mode <---`.cyan.bold);
-	});
+	app
+		.listen(PORT, async () => {
+			await connectionDB();
+			loggerInfo.info(
+				`  🚀 Servidor Ok ==> http://localhost:${PORT}/ecommerce/`.cyan.bold
+			),
+				loggerInfo.info(`  --> PID ${process.pid} <---`.cyan.bold),
+				loggerInfo.info(`  --> ${mode} Mode <---`.cyan.bold);
+		})
+		.on('error', err => loggerError.error(err));
 }
