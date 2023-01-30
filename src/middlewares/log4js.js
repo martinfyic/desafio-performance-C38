@@ -10,7 +10,11 @@ log4js.configure({
 			appender: 'appInfoConsole',
 			level: 'info',
 		},
-		logWarn: { type: 'logLevelFilter', appender: 'appWarnFile', level: 'warn' },
+		logWarn: {
+			type: 'logLevelFilter',
+			appender: 'appWarnFile',
+			level: 'warn',
+		},
 		logError: {
 			type: 'logLevelFilter',
 			appender: 'appErrorFile',
