@@ -14,4 +14,15 @@ infoRouter.get('/', (req, res) => {
 	}
 });
 
+infoRouter.get('/clg', (req, res) => {
+	try {
+		console.log(`Prueba performance`);
+		loggerInfo.info('Se accedió a /info/clg');
+		res.render('processInfo', { info: processInfo() });
+	} catch (error) {
+		loggerError.error(`Error en /info/clg ==> ${error}`);
+		res.send('Error');
+	}
+});
+
 module.exports = infoRouter;
