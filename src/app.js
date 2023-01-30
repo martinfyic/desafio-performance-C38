@@ -14,6 +14,7 @@ const {
 	ecommerceRoute,
 	infoRouter,
 	randomRoute,
+	error404,
 } = require('./routes/index.js');
 const compression = require('compression');
 const { loggerError, loggerInfo } = require('./middlewares/log4js.js');
@@ -70,6 +71,7 @@ if (cluster.isPrimary && mode === 'CLUSTER') {
 	app.use('/ecommerce', ecommerceRoute);
 	app.use('/info', infoRouter);
 	app.use('/api/randoms', randomRoute);
+	app.use('*', error404);
 
 	app
 		.listen(PORT, async () => {
