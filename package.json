@@ -6,6 +6,8 @@
 	"scripts": {
 		"start": "node src/app.js",
 		"prof": "node --prof src/app.js",
+		"inspect": "node --inspect src/app.js",
+		"0x": "0x src/app.js",
 		"dev": "nodemon src/app.js"
 	},
 	"keywords": [],
