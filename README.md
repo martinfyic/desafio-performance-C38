@@ -1,153 +1,160 @@
-# ⚡ SERVIDOR CON BALANCE DE CARGA ⚡
+# ⚡ LOGGERS, GZIP y ANÁLISIS DE PERFORMANCE ⚡
+
+## 📚 Clase 32
+
+Retomemos nuestro trabajo para implementar compresión por Gzip, registros por loggueo, y analizar la performance de nuestro servidor.
+
+## 👷🏻‍♀️⚒️ Consigna:
+
+### Incorporar al proyecto de servidor de trabajo la compresión gzip.
+
+Verificar sobre la ruta /info con y sin compresión, la diferencia de cantidad de bytes devueltos en un caso y otro.
+
+Luego implementar loggueo (con alguna librería vista en clase) que registre lo siguiente:
+
+- Ruta y método de todas las peticiones recibidas por el servidor (info)
+
+- Ruta y método de las peticiones a rutas inexistentes en el servidor (warning)
+- Errores lanzados por las apis de mensajes y productos, únicamente (error)
+
+Considerar el siguiente criterio:
+
+- Loggear todos los niveles a consola (info, warning y error)
+
+- Registrar sólo los logs de warning a un archivo llamada warn.log
+
+- Enviar sólo los logs de error a un archivo llamada error.log
+
+### Realizar el análisis completo de performance del servidor con el que venimos trabajando.
+
+Vamos a trabajar sobre la ruta '/info', en modo fork, agregando ó extrayendo un console.log de la información colectada antes de devolverla al cliente. Además desactivaremos el child_process de la ruta '/randoms
+
+Para ambas condiciones (con o sin console.log) en la ruta '/info' OBTENER:
+
+1. El perfilamiento del servidor, realizando el test con --prof de node.js. Analizar los resultados obtenidos luego de procesarlos con --prof-process.
+
+Utilizaremos como test de carga Artillery en línea de comandos, emulando 50 conexiones concurrentes con 20 request por cada una. Extraer un reporte con los resultados en archivo de texto.
+
+Luego utilizaremos Autocannon en línea de comandos, emulando 100 conexiones concurrentes realizadas en un tiempo de 20 segundos. Extraer un reporte con los resultados (puede ser un print screen de la consola)
+
+2. El perfilamiento del servidor con el modo inspector de node.js --inspect. Revisar el tiempo de los procesos menos performantes sobre el archivo fuente de inspección.
+
+3. El diagrama de flama con 0x, emulando la carga con Autocannon con los mismos parámetros anteriores.
+
+Realizar un informe en formato pdf sobre las pruebas realizadas incluyendo los resultados de todos los test (texto e imágenes).
+
+Al final incluir la conclusión obtenida a partir del análisis de los datos.
 
 ---
 
-## ⚠️ IMPORTANTE ⚠️
+## 🔥 Resolucion 🔥
 
-Para poder realizar este desafio necesitas los siguientes requerimientos:
+En la carpeta `./loggs` se guardara la info que resulte de los errores y warnings como lo pide el desafio puedes ver el archivo de configuracion en el siguiente [link](src/middlewares/log4js.js)
 
-- [Node.js](https://nodejs.org/en/)
-
-- [PM2](https://pm2.keymetrics.io/docs/usage/quick-start/) administrador de procesos de produccion de node.js
+1. Para este punto correr los siguientes comandos:
 
 ```bash
-$ npm install pm2@latest -g
+npm run prof
+
+ó
+
+node --prof src/app.js
 ```
 
-- [forever](https://github.com/foreversd/forever#readme) Una herramienta CLI simple para garantizar que un script dado se ejecute continuamente
+Se generarar un archivo .log con el nombre similar a `isolate-000001F11FCC7AE0-12268-v8`, para poder leerlo debes ejecutar el siguiente comando:
 
 ```bash
-$ npm install forever -g
+node --prof-process isolate-000001F11FCC7AE0-12268-v8.log > --prof-process-result.txt
 ```
 
-- [Nginx](https://nginx.org/en/docs/) es un servidor web, orientado a eventos. Descargar la última versión mainline.
+El cual nos dara la siguiente información [link](--prof-process-result.txt)
 
----
-
-## 👨🏻‍💻 DESAFIO CLASE 30
-
-Retomemos nuestro trabajo para poder ejecutar el servidor en modo fork o cluster, ajustando el balance de carga a través de [Nginx](https://nginx.org/en/docs/).
-
-### Consigna:
-
-Tomando con base el proyecto que vamos realizando, agregar un parámetro más en la ruta de comando que permita ejecutar al servidor en modo fork o cluster. Dicho parámetro será 'FORK' en el primer caso y 'CLUSTER' en el segundo, y de no pasarlo, el servidor iniciará en modo fork.
-
-- Agregar en la vista info, el número de procesadores presentes en el servidor.
-- Ejecutar el servidor (modos FORK y CLUSTER) con nodemon verificando el número de procesos tomados por node.
-- Ejecutar el servidor (con los parámetros adecuados) utilizando Forever, verificando su correcta operación. Listar los procesos por Forever y por sistema operativo.
-- Ejecutar el servidor (con los parámetros adecuados: modo FORK) utilizando [PM2](https://pm2.keymetrics.io/docs/usage/quick-start/) en sus modos modo fork y cluster. Listar los procesos por [PM2](https://pm2.keymetrics.io/docs/usage/quick-start/) y por sistema operativo.
-- Tanto en Forever como en [PM2](https://pm2.keymetrics.io/docs/usage/quick-start/) permitir el modo escucha, para que la actualización del código del servidor se vea reflejado inmediatamente en todos los procesos.
-- Hacer pruebas de finalización de procesos fork y cluster en los casos que corresponda.
-
-Utilizando [Nginx](https://nginx.org/en/docs/) configurar para balancear cargas de nuestro servidor de la siguiente manera:
-
-- Redirigir todas las consultas a /api/randoms a un cluster de servidores escuchando en el puerto 8081. El cluster será creado desde node utilizando el módulo nativo cluster.
-- El resto de las consultas, redirigirlas a un servidor individual escuchando en el puerto 8080.
-- Luego, modificar la configuración para que todas las consultas a /api/randoms sean redirigidas a un cluster de servidores gestionado desde [Nginx](https://nginx.org/en/docs/), repartiéndolas equitativamente entre 4 instancias escuchando en los puertos 8082, 8083, 8084 y 8085 respectivamente.
-
-### 🔥 Resolución
-
-🚩 *Este desafio fue realizado en Windows 11 y CommonJS, ya que los ES Modules no me funcionaron con [PM2](https://pm2.keymetrics.io/docs/usage/quick-start/) al hacer los clusters, sigo investigando los motivos*🚩
-
-1. En la ruta `GET /info` se encuentra la información del sistema como el nro de procesadores.
-
-2. El servidor iniciado con node por defecto se ejecutara en modo `FORK` pero podemos inicarlo por parametro si queremos modo `FORK` o `CLUSTER`
-
-Ejemplo:
+Luego debemos usar [Artillery](<[https://](https://www.artillery.io/)>) 🚀
 
 ```bash
-$ npm start <puerto> FORK
-#o
-$ npm run dev <puerto> FORK
+npm install -g artillery@latest
 ```
+
+Luego de instalado debemos probar con los siguientes endpoint:
+
+- GET /info
+- GET /info/clg ( este endpoint de prueba contiene el console.log )
+
+Antes de probar debemos tener corriendo el servidor:
 
 ```bash
-$ npm start <puerto> CLUSTER
-#o
-$ npm run dev <puerto> CLUSTER
+npm start
 ```
 
-3. Para ejecutar [forever](https://github.com/foreversd/forever#readme) debemos ejecutar los siguientes comandos:
+Luego si podremos ejecutar los siguientes comandos para realizar la comparacion
 
 ```bash
-$ forever start src/app.js <puerto> FORK
+# sin console.log
+artillery quick --count 50 --num 20 http://localhost:8080/info > artillery_results/noclg-result.txt
+
+# con console.log
+artillery quick --count 50 --num 20 http://localhost:8080/info/clg > artillery_results/withclg-result.txt
 ```
+
+Los resultados de la pruebas quedaran guardados en la carpeta `artillery_results`
+
+👨🏻‍💻 Para este ejemplo:
+
+- con console.log --> [withclg-result.txt](artillery_results/withclg-result.txt)
+- sin console.log --> [noclg-result.txt](artillery_results/noclg-result.txt)
+
+Por ultimo realizamos las pruebas con [Autocannon](https://www.npmjs.com/package/autocannon) 🚀
 
 ```bash
-$ forever start src/app.js <puerto> CLUSTER
+npm i autocannon -g
 ```
 
-Con el comando `forever --help` nos indicra una lista de todos los posibles comando que podemos usar de forma de ayuda.
-
-4. Utilizando [PM2](https://pm2.keymetrics.io/docs/usage/quick-start/) debemos ejecutar los comandos:
+Para utilizar [Autocannon](https://www.npmjs.com/package/autocannon) debemos primero tener corriendo nuestro servidor
 
 ```bash
-#Modo FORK
-
-$ pm2 start src/app.js --name Servername --watch -- <puerto>
+npm start
 ```
+
+Luego ejecutamos el siguiente comando:
 
 ```bash
-# Modo CLUSTER
-
-$ pm2 start src/app.js --name Servername --watch -i max -- <puerto>
+autocannon -c 100 -d 20 "http://localhost:8080/info"
 ```
 
-Tener en cuenta que `--name` y `--watch` son opcionales, para modo cluster el valor `max` tambien podemos indicarle la cantidad ejemplo 3.
+Nos dara el siguiente resultado por consola
 
-para listar los procesos podemos ejecutar dos comandos:
+![autocannon result](autocannon_terminal.png)
+
+1. Para utilizar el `inspect` de node debemos correr el siguiente sript, [Documentacion](https://nodejs.org/en/docs/guides/debugging-getting-started/)
 
 ```bash
-$ pm2 list
-# o
-$ pm2 monit
+npm run inspect
 ```
 
-los logs los podemos ver ejecutando `pm2 logs` y si le indicamos el id del servidor nos puestra solo los de ese servidor
+Luego debemos ir a las DevTools en chrome --> `chrome://inspect`
 
-ejecutando el comando `pm2 --help` nos listara todos los comandos con su descripcion para poder utilixar
+En profile apretar `start` para empezar a monitoriar
 
-5. Balanceador de carga (https://nginx.org/en/docs/) el archivo de configuración [link](nginx.conf)
+Para comenzar la prueba podemos correr cualquiera de los comandos anteriores de [Autocannon](https://www.npmjs.com/package/autocannon) o [Artillery](<[https://](https://www.artillery.io/)>)
 
-Para este ejercicio debemos crear los servidors en los puertos indicados, con [PM2](https://pm2.keymetrics.io/docs/usage/quick-start/) los ejecutamos en modo `CLUSTER` o `FORK`
+3. Ahora utilizaremos [0x](https://www.npmjs.com/package/0x) 🚀
 
 ```bash
-$ pm2 start src/app.js --name Server0 --watch -i 5 -- 8082
-$ pm2 start src/app.js --name Server1 --watch -i max -- 8083
-$ pm2 start src/app.js --name Server2 --watch -- 8084
-$ pm2 start src/app.js --name Server3 --watch -i 6 -- 8085
+npm i -g 0x
 ```
 
-Ahora [Nginx](https://nginx.org/en/docs/) se encargara de realizar el balanceo de cargas entre los puertos indicados en la configuración [link](nginx.conf).
+para comenzar corremos el siguiente script:
+
+```bash
+npm run 0x
+```
+
+una vez el servidor este corriendo ejecutamos el comando del ejercicio anterior de [Autocannon](https://www.npmjs.com/package/autocannon) o [Artillery](<[https://](https://www.artillery.io/)>)
 
 ```
-# nginx.config
-
-events {
-
-}
-
-http {
-    include       mime.types;
-    default_type  application/octet-stream;
-
-   upstream node_app {
-    server 127.0.0.1:8082;
-    server 127.0.0.1:8083;
-    server 127.0.0.1:8084;
-    server 127.0.0.1:8085;
-   }
-
-   server {
-    listen 80;
-    server_name mginx_node;
-    root C:\Users\marti\Desktop\Dev\Descargas-Guithub\backend-desafio-Clase26\src\views;
-
-    location /info/ {
-        proxy_pass http://node_app;
-    }
-   }
-
-}
-
+autocannon -c 100 -d 20 "http://localhost:8080/info"
 ```
+
+Cuando finaliza el comando debemos parar el servidor
+
+en el cual se nos generara una [carpeta](4036.0x/) con la info correspondiente, donde tendremos un archivo html [flamegraph.html](4036.0x/flamegraph.html), es recomendable tener la extencion [live server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer)
