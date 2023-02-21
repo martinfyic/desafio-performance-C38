@@ -1,95 +1,34 @@
-const passport = require('passport');
 const { Router } = require('express');
+const passport = require('passport');
 const isAuth = require('../middlewares/isAuth.js');
-const faker = require('../utils/faker.js');
-const { loggerInfo, loggerError } = require('../middlewares/log4js.js');
+const ecommerController = require('../controller/ecommerceController.js');
 
 const ecommerceRoute = Router();
 
-ecommerceRoute.get('/', isAuth, (req, res) => {
-	try {
-		const user = req.user;
-		const productsFaker = faker();
+ecommerceRoute.get('/', isAuth, ecommerController.allProducts);
 
-		loggerInfo.info('Se accedió a productos');
-		res.render('products', {
-			user,
-			productsFaker,
-		});
-	} catch (error) {
-		loggerError.error(`Error en products ==> ${error}`);
-		res.send('Error');
-	}
-});
-
-ecommerceRoute.get('/login', (req, res) => {
-	try {
-		if (req.isAuthenticated()) return res.redirect('/ecommerce');
-		loggerInfo.info('Se accedió a /login');
-		res.render('login');
-	} catch (error) {
-		loggerError.error(`Error en /login ==> ${error}`);
-		res.send('Error');
-	}
-});
+ecommerceRoute.get('/login', ecommerController.login);
 
 ecommerceRoute.post(
 	'/login',
 	passport.authenticate('login', { failureRedirect: '/ecommerce/error-login' }),
-	(req, res) => res.redirect('/ecommerce/')
+	ecommerController.postLogin
 );
 
-ecommerceRoute.get('/signup', (req, res) => {
-	try {
-		if (req.isAuthenticated()) return res.redirect('/ecommerce');
-		loggerInfo.info('Se accedió a /signup');
-		res.render('signup');
-	} catch (error) {
-		loggerError.error(`Error en /signup ==> ${error}`);
-		res.send('Error');
-	}
-});
+ecommerceRoute.get('/signup', ecommerController.getSingup);
+
 ecommerceRoute.post(
 	'/signup',
 	passport.authenticate('signup', {
 		failureRedirect: '/ecommerce/error-signup',
 	}),
-	(req, res) => res.redirect('/ecommerce/login')
+	ecommerController.postSingup
 );
 
-ecommerceRoute.get('/logout', isAuth, (req, res) => {
-	try {
-		loggerInfo.info('Se accedió a /logout');
-		req.logout(err => {
-			if (err) return err;
-			res.redirect('/ecommerce/login');
-		});
-	} catch (error) {
-		loggerError.error(`Error en /logout ==> ${error}`);
-		res.send('Error');
-	}
-});
+ecommerceRoute.get('/logout', isAuth, ecommerController.logout);
 
-ecommerceRoute.get('/error-login', (req, res) => {
-	try {
-		if (req.isAuthenticated()) return res.redirect('/ecommerce');
-		loggerInfo.info('Se accedió a /error-login');
-		res.render('error-login');
-	} catch (error) {
-		loggerError.error(`Error en /error-login ==> ${error}`);
-		res.send('Error');
-	}
-});
+ecommerceRoute.get('/error-login', ecommerController.errorLogin);
 
-ecommerceRoute.get('/error-signup', (req, res) => {
-	try {
-		if (req.isAuthenticated()) return res.redirect('/ecommerce');
-		loggerInfo.info('Se accedió a /error-signup');
-		res.render('error-signup');
-	} catch (error) {
-		loggerError.error(`Error en /error-signup ==> ${error}`);
-		res.send('Error');
-	}
-});
+ecommerceRoute.get('/error-signup', ecommerController.errorSingup);
 
 module.exports = ecommerceRoute;
